@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Shriner Family Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#08090b;--dark:#0f1115;--card:#15181e;--card2:#1a1e26;
+  --border:#22262f;--border2:#2a303c;
+  --orange:#ff6b2b;--orange2:#ff8c5a;
+  --yellow:#ffd166;--green:#06d6a0;--blue:#4cc9f0;
+  --purple:#9b5de5;--red:#ef233c;--pink:#f72585;
+  --text:#eef0f4;--muted:#5a6175;--mid:#8892a4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;padding-bottom:80px;}
+.top-nav{position:sticky;top:0;z-index:100;background:rgba(8,9,11,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none;}
+.top-nav::-webkit-scrollbar{display:none;}
+.nav-brand{padding:12px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;color:var(--orange);letter-spacing:.04em;white-space:nowrap;flex-shrink:0;}
+.nav-tab{flex-shrink:0;padding:14px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.nav-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.screen{display:none;}.screen.active{display:block;}
+.hero{padding:28px 18px 20px;background:linear-gradient(160deg,#08090b 0%,#120800 60%,#08090b 100%);border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 75% 40%,rgba(255,107,43,.07) 0%,transparent 65%);}
+.hero-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);position:relative;}
+.hero h1{font-family:'Barlow Condensed',sans-serif;font-size:2.6rem;font-weight:900;line-height:.92;color:#fff;text-transform:uppercase;position:relative;margin-top:6px;}
+.hero h1 span{color:var(--orange);}
+.hero-sub{font-size:.84rem;color:var(--mid);margin-top:9px;line-height:1.55;max-width:320px;position:relative;}
+.hero-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;position:relative;}
+.htag{font-family:'Barlow Condensed',sans-serif;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:3px;border:1px solid;}
+.htag-o{color:var(--orange);border-color:rgba(255,107,43,.3);background:rgba(255,107,43,.07);}
+.htag-g{color:var(--green);border-color:rgba(6,214,160,.3);background:rgba(6,214,160,.07);}
+.htag-b{color:var(--blue);border-color:rgba(76,201,240,.3);background:rgba(76,201,240,.07);}
+.htag-p{color:var(--purple);border-color:rgba(155,93,229,.3);background:rgba(155,93,229,.07);}
+.section{padding:16px;}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.member-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;}
+.member-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;}
+.member-card:hover{border-color:var(--border2);background:var(--card2);}
+.member-card.active{border-color:rgba(255,107,43,.5);background:rgba(255,107,43,.06);}
+.member-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 7px;overflow:hidden;}
+.member-av img{width:44px;height:44px;border-radius:50%;object-fit:cover;}
+.member-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.95rem;color:#fff;}
+.member-role{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.photo-btn{font-size:.6rem;color:var(--muted);cursor:pointer;margin-top:5px;display:block;line-height:1;}
+.goal-section{margin-bottom:18px;}
+.goal-section-header{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.goal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;}
+.goal-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 11px;cursor:pointer;display:flex;align-items:flex-start;gap:9px;text-align:left;transition:all .15s;}
+.goal-btn:hover{border-color:var(--border2);background:var(--card2);}
+.goal-btn.sel{border-color:rgba(255,107,43,.45);background:rgba(255,107,43,.07);}
+.goal-btn.locked{opacity:.4;cursor:default;}
+.goal-icon{font-size:17px;flex-shrink:0;margin-top:1px;}
+.goal-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:#fff;line-height:1.2;}
+.goal-sub{font-size:.72rem;color:var(--muted);margin-top:2px;line-height:1.3;}
+.lock-tag{font-size:.65rem;background:var(--card2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--muted);margin-top:3px;display:inline-block;}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:10px;padding:1.4rem;text-align:center;cursor:pointer;background:var(--card);margin-bottom:10px;}
+.upload-zone:hover{border-color:rgba(255,107,43,.35);background:rgba(255,107,43,.04);}
+.upload-icon{font-size:26px;display:block;margin-bottom:6px;}
+.upload-text{font-size:.82rem;color:var(--mid);}
+.upload-hint{font-size:.7rem;color:var(--muted);margin-top:3px;}
+.preview-img{width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:8px;border:1px solid var(--border);}
+.btn-go{width:100%;padding:.65rem;background:var(--orange);color:#fff;border:none;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.06em;cursor:pointer;text-transform:uppercase;margin-top:8px;transition:background .15s;}
+.btn-go:hover{background:var(--orange2);}
+.btn-back{background:none;border:1px solid var(--border);border-radius:6px;padding:.3rem .8rem;font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;}
+.btn-back:hover{background:var(--card);}
+.loading{text-align:center;padding:3rem 1rem;}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-txt{font-size:.84rem;color:var(--mid);}
+.result-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:14px 16px 0;}
+.result-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.result-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:#fff;}
+.result-goal-tag{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px;background:rgba(255,107,43,.15);color:var(--orange);margin-top:3px;display:inline-block;}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin:0 16px 10px;overflow:hidden;}
+.result-card-hdr{padding:11px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;border-bottom:1px solid var(--border);}
+.result-card-hdr h3{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.95rem;color:#fff;flex:1;}
+.result-chevron{color:var(--muted);font-size:1rem;transition:transform .2s;}
+.result-card.open .result-chevron{transform:rotate(90deg);}
+.result-card-body{display:none;padding:12px 13px;}
+.result-card.open .result-card-body{display:block;}
+.result-text{font-size:.82rem;color:var(--mid);line-height:1.75;white-space:pre-wrap;}
+.vis-tabs{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.vtab{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:3px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;}
+.vtab.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+.vpanel{display:none;}.vpanel.active{display:block;}
+svg.diagram{width:100%;height:auto;display:block;}
+.step-cards{display:flex;flex-direction:column;gap:6px;}
+.step-c{background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:9px 11px;display:flex;gap:9px;align-items:flex-start;}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-txt{font-size:.8rem;color:var(--mid);line-height:1.55;}
+.step-txt strong{color:var(--text);font-weight:600;}
+.acc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px;}
+.acc-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;transition:all .2s;}
+.acc-card.checked{background:rgba(6,214,160,.08);border-color:rgba(6,214,160,.35);}
+.acc-week{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.acc-goal{font-size:.78rem;color:var(--mid);line-height:1.4;margin-bottom:6px;}
+.acc-check{font-size:22px;cursor:pointer;transition:transform .15s;}
+.acc-check:hover{transform:scale(1.2);}
+.coach-note{background:rgba(255,107,43,.06);border-left:3px solid var(--orange);border-radius:0 7px 7px 0;padding:10px 12px;margin-top:10px;font-size:.8rem;color:var(--orange2);line-height:1.6;font-style:italic;}
+.week-tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;margin-bottom:12px;}
+.week-tabs::-webkit-scrollbar{display:none;}
+.wtab{flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:5px 11px;border-radius:4px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;}
+.wtab.active{background:var(--green);border-color:var(--green);color:#000;}
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;}
+.day-hdr{padding:10px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.day-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.day-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.95rem;color:#fff;flex:1;}
+.day-tag{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;}
+.day-chev{color:var(--muted);font-size:1rem;transition:transform .2s;}
+.day-card.open .day-chev{transform:rotate(90deg);}
+.day-body{display:none;padding:0 13px 13px;border-top:1px solid var(--border);}
+.day-card.open .day-body{display:block;}
+.drill{background:var(--card2);border-radius:6px;padding:8px 10px;margin-top:7px;transition:opacity .2s;}
+.drill-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.85rem;color:#fff;}
+.drill-detail{font-size:.76rem;color:var(--mid);margin-top:3px;line-height:1.5;}
+.drill-why{font-size:.73rem;color:var(--orange2);margin-top:4px;line-height:1.4;}
+.drill-yt{display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:rgba(239,35,60,.1);border:1px solid rgba(239,35,60,.2);border-radius:4px;padding:3px 8px;font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ff6b78;cursor:pointer;}
+.check-drill{display:inline-flex;align-items:center;gap:5px;margin-top:6px;margin-left:6px;font-size:.7rem;color:var(--muted);cursor:pointer;}
+.check-drill input{accent-color:var(--green);}
+.filter-bar{display:flex;gap:5px;padding:0 0 8px;overflow-x:auto;scrollbar-width:none;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.fbtn{flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:3px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s;}
+.fbtn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+.ex-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;margin-bottom:8px;}
+.ex-card.open{border-color:rgba(255,107,43,.35);}
+.ex-hdr{display:flex;align-items:center;gap:10px;padding:11px 13px;}
+.ex-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ex-info{flex:1;min-width:0;}
+.ex-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;color:#fff;}
+.ex-meta{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;}
+.ebadge{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:3px;}
+.eb-m{background:var(--card2);color:var(--mid);}
+.eb-t{background:rgba(255,107,43,.12);color:var(--orange);}
+.eb-e{background:rgba(76,201,240,.1);color:var(--blue);}
+.eb-y{background:rgba(6,214,160,.1);color:var(--green);}
+.ex-chev{color:var(--muted);font-size:1rem;transition:transform .2s;flex-shrink:0;}
+.ex-card.open .ex-chev{transform:rotate(90deg);}
+.ex-body{display:none;padding:0 13px 13px;border-top:1px solid var(--border);}
+.ex-card.open .ex-body{display:block;}
+.detail-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px;}
+.detail-txt{font-size:.8rem;color:var(--mid);line-height:1.6;}
+.sets-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.set-box{background:var(--card2);border-radius:6px;padding:8px 9px;}
+.set-who{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.set-val{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:800;color:#fff;margin-top:1px;}
+.mech-bar{background:var(--card2);border-radius:6px;padding:8px 10px;margin-top:7px;border-left:3px solid var(--orange);}
+.mech-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:3px;}
+.mech-txt{font-size:.77rem;color:var(--mid);line-height:1.5;}
+.tip-bar{background:rgba(255,209,102,.05);border-radius:6px;padding:8px 10px;margin-top:6px;border-left:3px solid var(--yellow);}
+.tip-txt{font-size:.77rem;color:var(--yellow);line-height:1.5;}
+.yt-btn{display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:rgba(239,35,60,.1);border:1px solid rgba(239,35,60,.2);border-radius:4px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ff6b78;cursor:pointer;}
+.profile-bar{display:flex;background:var(--dark);border-bottom:1px solid var(--border);}
+.pbtn{flex:1;padding:11px 6px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.pbtn.active{color:var(--orange);border-bottom-color:var(--orange);}
+.disclaimer{font-size:.7rem;color:var(--muted);border-top:1px solid var(--border);padding:10px 16px;margin-top:4px;line-height:1.6;}
+.btn-restart{width:calc(100% - 32px);margin:8px 16px 0;padding:.55rem;background:var(--card);color:var(--mid);border:1px solid var(--border);border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;}
+.btn-restart:hover{background:var(--card2);}
+.tracker-card{background:var(--card);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;padding:12px 13px;}
+.tracker-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;color:#fff;margin-bottom:8px;}
+.metric-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.metric-label{font-size:.76rem;color:var(--mid);flex:1;}
+.metric-input{background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:.8rem;color:var(--text);width:80px;text-align:center;}
+.metric-pr{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 5px;border-radius:3px;background:rgba(255,209,102,.12);color:var(--yellow);}
+.save-btn{width:100%;padding:.5rem;background:var(--green);color:#000;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;margin-top:8px;}
+.science-card{background:var(--card);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;padding:13px 14px;}
+.science-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;color:var(--orange);margin-bottom:6px;}
+.science-txt{font-size:.8rem;color:var(--mid);line-height:1.65;}
+.quad-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;}
+.quad-box{background:var(--card2);border-radius:7px;padding:10px 11px;border:1px solid var(--border);}
+.quad-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;}
+.quad-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:#fff;margin-bottom:3px;}
+.quad-desc{font-size:.74rem;color:var(--mid);line-height:1.5;}
+</style>
+</head>
+<body>
+
+<nav class="top-nav" role="navigation">
+  <div class="nav-brand">SFT</div>
+  <div class="nav-tab active" onclick="showScreen('home',this)">Home</div>
+  <div class="nav-tab" onclick="showScreen('ai-coach',this)">AI Coach</div>
+  <div class="nav-tab" onclick="showScreen('lily',this)">Lily's Academy</div>
+  <div class="nav-tab" onclick="showScreen('neural',this)">Neural Training</div>
+  <div class="nav-tab" onclick="showScreen('tracker',this)">Tracker</div>
+  <div class="nav-tab" onclick="showScreen('science',this)">Science</div>
+</nav>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="hero">
+    <div class="hero-eyebrow">Shriner Family</div>
+    <h1>Personal<br><span>Trainer</span></h1>
+    <div class="hero-sub">AI coaching · Soccer academy · Neural performance · Built for your crew.</div>
+    <div class="hero-tags">
+      <span class="htag htag-o">AI Body Scan</span>
+      <span class="htag htag-g">Lily's Soccer</span>
+      <span class="htag htag-b">Neural System</span>
+      <span class="htag htag-p">Polamalu Method</span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">Family Members</div>
+    <div class="member-grid">
+      <div class="member-card" onclick="quickCoach('Tim','👨','var(--blue)')">
+        <div class="member-av" style="background:rgba(76,201,240,.15)" id="av-Tim">👨</div>
+        <div class="member-name">Tim</div>
+        <div class="member-role">Dad</div>
+        <label class="photo-btn" onclick="event.stopPropagation()" title="Upload photo">📷 <input type="file" accept="image/*" style="display:none" onchange="uploadMemberPhoto('Tim',this.files[0])"></label>
+      </div>
+      <div class="member-card" onclick="quickCoach('Kara','👩','var(--pink)')">
+        <div class="member-av" style="background:rgba(247,37,133,.15)" id="av-Kara">👩</div>
+        <div class="member-name">Kara</div>
+        <div class="member-role">Mom</div>
+        <label class="photo-btn" onclick="event.stopPropagation()" title="Upload photo">📷 <input type="file" accept="image/*" style="display:none" onchange="uploadMemberPhoto('Kara',this.files[0])"></label>
+      </div>
+      <div class="member-card" onclick="showScreen('lily',document.querySelector('[onclick*=lily]'))">
+        <div class="member-av" style="background:rgba(6,214,160,.15)" id="av-Lily">👧</div>
+        <div class="member-name">Lily</div>
+        <div class="member-role">Soccer ⚽</div>
+        <label class="photo-btn" onclick="event.stopPropagation()" title="Upload photo">📷 <input type="file" accept="image/*" style="display:none" onchange="uploadMemberPhoto('Lily',this.files[0])"></label>
+      </div>
+      <div class="member-card" onclick="quickCoach('Mason','👦','var(--orange)')">
+        <div class="member-av" style="background:rgba(255,107,43,.15)" id="av-Mason">👦</div>
+        <div class="member-name">Mason</div>
+        <div class="member-role">Son</div>
+        <label class="photo-btn" onclick="event.stopPropagation()" title="Upload photo">📷 <input type="file" accept="image/*" style="display:none" onchange="uploadMemberPhoto('Mason',this.files[0])"></label>
+      </div>
+    </div>
+  </div>
+  <div class="section" style="padding-top:0">
+    <div class="section-title">Quick Jump</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <div class="member-card" style="border-color:rgba(6,214,160,.3)" onclick="showScreen('lily',document.querySelector('[onclick*=lily]'))">
+        <div style="font-size:22px;margin-bottom:5px">⚽</div>
+        <div class="member-name" style="font-size:.85rem">Lily's 6-Week Program</div>
+      </div>
+      <div class="member-card" style="border-color:rgba(76,201,240,.3)" onclick="showScreen('neural',document.querySelector('[onclick*=neural]'))">
+        <div style="font-size:22px;margin-bottom:5px">🧠</div>
+        <div class="member-name" style="font-size:.85rem">Neural Exercises</div>
+      </div>
+      <div class="member-card" style="border-color:rgba(255,107,43,.3)" onclick="showScreen('ai-coach',document.querySelector('[onclick*=ai-coach]'))">
+        <div style="font-size:22px;margin-bottom:5px">🤖</div>
+        <div class="member-name" style="font-size:.85rem">AI Body Coach</div>
+      </div>
+      <div class="member-card" style="border-color:rgba(255,209,102,.3)" onclick="showScreen('tracker',document.querySelector('[onclick*=tracker]'))">
+        <div style="font-size:22px;margin-bottom:5px">📈</div>
+        <div class="member-name" style="font-size:.85rem">Progress Tracker</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI COACH -->
+<div class="screen" id="screen-ai-coach">
+  <div id="coach-step-1">
+    <div class="hero" style="padding:20px 18px 16px">
+      <div class="hero-eyebrow">AI Body Coach</div>
+      <h1 style="font-size:2rem">Get Your<br><span>Plan</span></h1>
+      <div class="hero-sub" style="font-size:.8rem">Upload a photo or skip it — AI builds your plan either way.</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Who's training?</div>
+      <div class="member-grid">
+        <div class="member-card" onclick="setCoachMember('Tim','👨','rgba(76,201,240,.15)',this)">
+          <div class="member-av" style="background:rgba(76,201,240,.15)">👨</div>
+          <div class="member-name">Tim</div><div class="member-role">Dad</div>
+        </div>
+        <div class="member-card" onclick="setCoachMember('Kara','👩','rgba(247,37,133,.15)',this)">
+          <div class="member-av" style="background:rgba(247,37,133,.15)">👩</div>
+          <div class="member-name">Kara</div><div class="member-role">Mom</div>
+        </div>
+        <div class="member-card" onclick="setCoachMember('Lily','👧','rgba(6,214,160,.15)',this)">
+          <div class="member-av" style="background:rgba(6,214,160,.15)">👧</div>
+          <div class="member-name">Lily</div><div class="member-role">Daughter</div>
+        </div>
+        <div class="member-card" onclick="setCoachMember('Mason','👦','rgba(255,107,43,.15)',this)">
+          <div class="member-av" style="background:rgba(255,107,43,.15)">👦</div>
+          <div class="member-name">Mason</div><div class="member-role">Son</div>
+        </div>
+        <div class="member-card" onclick="addCoachMember()">
+          <div class="member-av" style="background:var(--card2);border:1px solid var(--border)">➕</div>
+          <div class="member-name">Add</div><div class="member-role">Member</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="coach-step-2" style="display:none">
+    <div class="section" style="padding-top:14px">
+      <button class="btn-back" onclick="coachGoTo(1)">← Back</button>
+      <div class="section-title">What's the goal, <span id="coach-name-lbl">—</span>?</div>
+      <div class="goal-section">
+        <div class="goal-section-header">💪 Build & Sculpt</div>
+        <div class="goal-grid">
+          <div class="goal-btn" onclick="setCoachGoal('Build muscle and overall strength','💪',false,this)"><span class="goal-icon">💪</span><div><div class="goal-title">Build Muscle</div><div class="goal-sub">Strength & size</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Sculpt and grow glutes — hip thrusts, RDLs, Bulgarian splits','🍑',false,this)"><span class="goal-icon">🍑</span><div><div class="goal-title">Grow Glutes</div><div class="goal-sub">Shape & lift</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Lose body fat and lean out','🔥',false,this)"><span class="goal-icon">🔥</span><div><div class="goal-title">Lose Fat</div><div class="goal-sub">Cut & reveal</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Tone arms and upper body — definition and shoulder pop','💥',false,this)"><span class="goal-icon">💥</span><div><div class="goal-title">Tone Arms</div><div class="goal-sub">Definition & pop</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Get shredded abs and core strength','🧊',false,this)"><span class="goal-icon">🧊</span><div><div class="goal-title">Shredded Abs</div><div class="goal-sub">Core & definition</div></div></div>
+        </div>
+      </div>
+      <div class="goal-section">
+        <div class="goal-section-header">⚽ Soccer Skills</div>
+        <div class="goal-grid">
+          <div class="goal-btn" onclick="setCoachGoal('Master the Rainbow Flick soccer skill — full technique breakdown','🌈',true,this)"><span class="goal-icon">🌈</span><div><div class="goal-title">Rainbow Flick</div><div class="goal-sub">Step-by-step</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Develop elite first touch — control and receiving under pressure','⚽',true,this)"><span class="goal-icon">⚽</span><div><div class="goal-title">First Touch</div><div class="goal-sub">Control & receive</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Master the Cruyff Turn — deceptive direction change','🔄',true,this)"><span class="goal-icon">🔄</span><div><div class="goal-title">Cruyff Turn</div><div class="goal-sub">Deceptive pivot</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Improve shooting power and technique — plant foot, ankle lock, follow-through','🎯',true,this)"><span class="goal-icon">🎯</span><div><div class="goal-title">Shooting Power</div><div class="goal-sub">Strike zone</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Dribbling speed and close ball control in tight spaces','🏃',true,this)"><span class="goal-icon">🏃</span><div><div class="goal-title">Dribbling</div><div class="goal-sub">Close control</div></div></div>
+        </div>
+      </div>
+      <div class="goal-section">
+        <div class="goal-section-header">⚡ Athletic Performance</div>
+        <div class="goal-grid">
+          <div class="goal-btn" onclick="setCoachGoal('Jump higher — vertical leap, plyometrics and explosive hip power','🦘',false,this)"><span class="goal-icon">🦘</span><div><div class="goal-title">Jump Higher</div><div class="goal-sub">Vertical & power</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Train like Troy Polamalu — relentless engine, football conditioning, contact toughness','🏈',false,this)"><span class="goal-icon">🏈</span><div><div class="goal-title">Polamalu Mode</div><div class="goal-sub">Football beast</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Get faster — speed, acceleration and agility training','⚡',false,this)"><span class="goal-icon">⚡</span><div><div class="goal-title">Get Faster</div><div class="goal-sub">Speed & agility</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Endurance and cardiovascular conditioning','🫀',false,this)"><span class="goal-icon">🫀</span><div><div class="goal-title">Endurance</div><div class="goal-sub">Cardio base</div></div></div>
+        </div>
+      </div>
+      <div class="goal-section">
+        <div class="goal-section-header">🧘 Mobility & Wellness</div>
+        <div class="goal-grid">
+          <div class="goal-btn" onclick="setCoachGoal('Flexibility, stretching and yoga — daily practice, open hips, improve range of motion','🧘',false,this)"><span class="goal-icon">🧘</span><div><div class="goal-title">Yoga & Stretch</div><div class="goal-sub">Flexibility & flow</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Fix posture and correct muscle imbalances','🪄',false,this)"><span class="goal-icon">🪄</span><div><div class="goal-title">Fix Posture</div><div class="goal-sub">Alignment</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Overall health, energy and longevity','💚',false,this)"><span class="goal-icon">💚</span><div><div class="goal-title">Overall Health</div><div class="goal-sub">Long-term</div></div></div>
+        </div>
+      </div>
+      <div class="goal-section">
+        <div class="goal-section-header">🌶️ Adult Performance</div>
+        <div class="goal-grid">
+          <div class="goal-btn" onclick="setCoachGoal('Sexual stamina and endurance — last longer, pelvic floor strength, blood flow and natural testosterone','🌶️',false,this)"><span class="goal-icon">🌶️</span><div><div class="goal-title">Last Longer</div><div class="goal-sub">Stamina & performance</div></div></div>
+          <div class="goal-btn" onclick="setCoachGoal('Boost testosterone and libido naturally through training and nutrition','🔋',false,this)"><span class="goal-icon">🔋</span><div><div class="goal-title">Boost Testosterone</div><div class="goal-sub">Natural T & energy</div></div></div>
+        </div>
+      </div>
+      <div class="goal-section">
+        <div class="goal-section-header">🔒 KinHub — Coming Soon</div>
+        <div class="goal-grid">
+          <div class="goal-btn locked"><span class="goal-icon">📊</span><div><div class="goal-title">Sync KinHub</div><div class="goal-sub">Pull family metrics<br><span class="lock-tag">API pending</span></div></div></div>
+          <div class="goal-btn locked"><span class="goal-icon">📅</span><div><div class="goal-title">Workout History</div><div class="goal-sub">Log over time<br><span class="lock-tag">Coming soon</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="coach-step-3" style="display:none">
+    <div class="section" style="padding-top:14px">
+      <button class="btn-back" onclick="coachGoTo(2)">← Back</button>
+      <div class="section-title">Photo scan — optional</div>
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Full-body front or side shot gives the best reading. Stays private — not stored anywhere.</p>
+      <div class="upload-zone" onclick="document.getElementById('photo-input').click()" id="coach-uzone">
+        <span class="upload-icon">📷</span>
+        <div class="upload-text">Tap to upload a photo</div>
+        <div class="upload-hint">Optional — great plan with or without it</div>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" onchange="handleCoachPhoto(event)" style="display:none">
+      <img id="coach-preview" class="preview-img" style="display:none" alt="Body photo">
+      <button class="btn-go" onclick="runCoachAnalysis()">⚡ Build My Plan + Visuals</button>
+    </div>
+  </div>
+
+  <div id="coach-step-4" style="display:none">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="load-txt" id="coach-load-msg">Building your personalized plan...</div>
+    </div>
+  </div>
+
+  <div id="coach-step-5" style="display:none">
+    <div class="result-hdr">
+      <div class="result-av" id="res-av" style="background:rgba(76,201,240,.15)">👤</div>
+      <div>
+        <div class="result-name" id="res-name">Results</div>
+        <span class="result-goal-tag" id="res-tag"></span>
+      </div>
+    </div>
+    <div class="result-card open" id="rc-assess">
+      <div class="result-card-hdr" onclick="toggleRC('rc-assess')"><h3>🔍 Assessment</h3><span class="result-chevron">›</span></div>
+      <div class="result-card-body"><div class="result-text" id="txt-assess"></div></div>
+    </div>
+    <div class="result-card open" id="rc-visual">
+      <div class="result-card-hdr" onclick="toggleRC('rc-visual')"><h3>👁 <span id="vis-title">Visual Breakdown</span></h3><span class="result-chevron">›</span></div>
+      <div class="result-card-body">
+        <div class="vis-tabs" id="vis-tabs"></div>
+        <div id="vis-panels"></div>
+      </div>
+    </div>
+    <div class="result-card open" id="rc-workout">
+      <div class="result-card-hdr" onclick="toggleRC('rc-workout')"><h3>🏋️ <span id="workout-title">Your Plan</span></h3><span class="result-chevron">›</span></div>
+      <div class="result-card-body"><div class="result-text" id="txt-workout"></div></div>
+    </div>
+    <div class="result-card open" id="rc-nutrition">
+      <div class="result-card-hdr" onclick="toggleRC('rc-nutrition')"><h3>🥗 Nutrition</h3><span class="result-chevron">›</span></div>
+      <div class="result-card-body"><div class="result-text" id="txt-nutrition"></div></div>
+    </div>
+    <div class="result-card open" id="rc-acc">
+      <div class="result-card-hdr" onclick="toggleRC('rc-acc')"><h3>📅 Accountability</h3><span class="result-chevron">›</span></div>
+      <div class="result-card-body">
+        <div class="result-text" style="margin-bottom:8px;font-size:.75rem">Tap a milestone when you hit it:</div>
+        <div class="acc-grid" id="acc-grid"></div>
+        <div class="coach-note" id="coach-note"></div>
+      </div>
+    </div>
+    <p class="disclaimer">🛡 AI fitness coaching only — not medical advice. Adult goals for healthy adults 18+.</p>
+    <button class="btn-restart" onclick="resetCoach()">↩ Train Another Member</button>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- LILY'S ACADEMY -->
+<div class="screen" id="screen-lily">
+  <div class="hero" style="padding:20px 18px 16px;background:linear-gradient(160deg,#08090b,#001a08,#08090b)">
+    <div class="hero-eyebrow" style="color:var(--green)">Lily's Academy</div>
+    <h1 style="font-size:2rem">Soccer<br><span style="color:var(--green)">Training</span></h1>
+    <div class="hero-sub" style="font-size:.78rem">6-week A-team program · Neural power days · PVC pipe balance · Technique breakdown</div>
+    <div class="hero-tags">
+      <span class="htag htag-g">A-Skip / B-Skip</span>
+      <span class="htag htag-g">Band Jumps</span>
+      <span class="htag htag-g">PVC Balance</span>
+      <span class="htag htag-g">Kicking Tech</span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">Select Week</div>
+    <div class="week-tabs" id="lily-week-tabs"></div>
+    <div id="lily-week-content"></div>
+  </div>
+  <div class="section" style="padding-top:0">
+    <div class="section-title">Technique Reference</div>
+    <div id="lily-tech-cards"></div>
+  </div>
+</div>
+
+<!-- NEURAL TRAINING -->
+<div class="screen" id="screen-neural">
+  <div class="hero" style="padding:20px 18px 16px;background:linear-gradient(160deg,#08090b,#0d0020,#08090b)">
+    <div class="hero-eyebrow" style="color:var(--purple)">EvoSport Method</div>
+    <h1 style="font-size:2rem">Neural<br><span style="color:var(--purple)">Training</span></h1>
+    <div class="hero-sub" style="font-size:.78rem">Band-assisted overspeed · Extreme isometrics · Stretch-shortening cycle · Polamalu / Schroeder method</div>
+  </div>
+  <div class="profile-bar">
+    <div class="pbtn active" onclick="setNeuralProfile('adult',this)">💪 Adult / Teen</div>
+    <div class="pbtn" onclick="setNeuralProfile('youth',this)">👧 Youth (9-12)</div>
+  </div>
+  <div class="section">
+    <div class="filter-bar" id="neural-filter-bar"></div>
+    <div id="neural-ex-list"></div>
+  </div>
+</div>
+
+<!-- TRACKER -->
+<div class="screen" id="screen-tracker">
+  <div class="hero" style="padding:20px 18px 16px">
+    <div class="hero-eyebrow">Progress</div>
+    <h1 style="font-size:2rem">Track<br><span>Results</span></h1>
+    <div class="hero-sub" style="font-size:.78rem">Log weekly metrics · Watch PRs appear · See the family improving</div>
+  </div>
+  <div class="section" id="tracker-content"></div>
+</div>
+
+<!-- SCIENCE -->
+<div class="screen" id="screen-science">
+  <div class="hero" style="padding:20px 18px 16px;background:linear-gradient(160deg,#08090b,#001020,#08090b)">
+    <div class="hero-eyebrow" style="color:var(--blue)">The Science</div>
+    <h1 style="font-size:2rem">Why It<br><span style="color:var(--blue)">Works</span></h1>
+    <div class="hero-sub" style="font-size:.78rem">Strength vs power vs explosiveness · Energy transfer · The EvoSport system explained</div>
+  </div>
+  <div class="section" id="science-content"></div>
+</div>
+
+<script src="/static/js/data.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
