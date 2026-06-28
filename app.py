@@ -157,18 +157,14 @@ def create_app():
         if ext not in ALLOWED_EXTENSIONS:
             return jsonify({'error': 'Invalid file type'}), 400
 
-        filename = f'profile_{member_name.lower()}_{int(time.time())}.{ext}'
+        filename = f'profile_{member_name.lower()}_{int(time.time())}.jpg'
         save_path = os.path.join(UPLOAD_FOLDER, filename)
 
         try:
             from PIL import Image
-            import io
             img = Image.open(f)
             img = img.convert('RGB')
             img.thumbnail((600, 600))
-            img.save(save_path, 'JPEG', quality=85)
-            filename = filename.rsplit('.', 1)[0] + '.jpg'
-            save_path = os.path.join(UPLOAD_FOLDER, filename)
             img.save(save_path, 'JPEG', quality=85)
         except Exception:
             f.seek(0)
