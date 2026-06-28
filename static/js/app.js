@@ -4,6 +4,10 @@ let coachPhotoB64=null,coachPhotoMime=null;
 let neuralProfile='adult',neuralGroup='all';
 let drillCompletions=new Set();
 
+// plan state
+let planMember=null;
+const planPhotos=[null,null,null,null]; // {b64, mime} or null
+
 // ── NAVIGATION ───────────────────────────────────────────────────────────
 function showScreen(id,el){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -22,6 +26,8 @@ function quickCoach(name,emoji,bg){
       coachMember={name,emoji,bg};
       document.querySelectorAll('#coach-step-1 .member-card')[idx].classList.add('active');
       document.getElementById('coach-name-lbl').textContent=name;
+      const ap=document.getElementById('goal-adult-perf');
+      if(ap) ap.style.display=(name==='Lily'||name==='Mason')?'none':'';
       coachGoTo(2);
     }
   },100);
@@ -38,6 +44,8 @@ function setCoachMember(name,emoji,bg,el){
   document.querySelectorAll('#coach-step-1 .member-card').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('coach-name-lbl').textContent=name;
+  const ap=document.getElementById('goal-adult-perf');
+  if(ap) ap.style.display=(name==='Lily'||name==='Mason')?'none':'';
   setTimeout(()=>coachGoTo(2),200);
 }
 
@@ -427,6 +435,224 @@ function buildScience(){
   <div class="science-card"><div class="science-title">The Four Training Quadrants</div><div class="quad-grid"><div class="quad-box"><div class="quad-lbl" style="color:var(--purple)">Heavy · Slow</div><div class="quad-title">Strength Foundation</div><div class="quad-desc">Heavy calf raises, slow squats, Nordic curls. Builds the ceiling. Most gym training lives here.</div></div><div class="quad-box"><div class="quad-lbl" style="color:var(--orange)">Heavy · Fast</div><div class="quad-title">Power</div><div class="quad-desc">Olympic lifts, jump squats with load, resisted sprints. Force × velocity.</div></div><div class="quad-box"><div class="quad-lbl" style="color:var(--blue)">Light · Slow</div><div class="quad-title">Neural Recruitment</div><div class="quad-desc">Long iso holds, PVC balance, wall squat. Accesses motor units that normal exercise can't reach. The Schroeder foundation.</div></div><div class="quad-box"><div class="quad-lbl" style="color:var(--green)">Light · Fast</div><div class="quad-title">Elasticity / SSC</div><div class="quad-desc">Band assisted jumps, pogos, bounding. Overspeed eccentric — the garage setup.</div></div></div><div style="font-size:.76rem;color:var(--muted);margin-top:10px;line-height:1.6">Most gym training lives entirely in Heavy·Slow. The garage band setup lives in Light·Fast. Complete development hits all four. Sequence: Neural → SSC → Power in each session.</div></div>
   <div class="science-card"><div class="science-title">Energy Transfer &amp; the Stretch-Shortening Cycle</div><div class="science-txt"><strong style="color:var(--text)">Flat-footed runner:</strong> Force returns, ankle collapses, knee bends, hip sinks. Energy disperses as heat across every joint. Near-zero elastic return per step.\n\n<strong style="color:var(--text)">Trained spring ankle:</strong> Force returns, stiff ankle redirects it immediately into next stride. Achilles pre-loaded before contact releases elastic energy for free. Elite sprinters get 40-50% of forward propulsion from elastic return alone.\n\nThe band jump amplifies this: bands bring you down FASTER than gravity, training the Achilles to handle higher energy levels than normal movement creates. When bands come off — gravity feels slow.\n\n<strong style="color:var(--text)">Lily's flat-footed running</strong> is a nervous system timing problem — not a strength deficit. The pattern fixes through: pogo jumps → A-skip → falling start → reactive drills.</div></div>
   <div class="science-card"><div class="science-title">The EvoSport / Schroeder / Polamalu Method</div><div class="science-txt">Jay Schroeder's training system — used on Troy Polamalu and Adam Archuleta — is built on one premise: the CNS (central nervous system) is the limiting factor, not muscle size or cardiovascular fitness.\n\nCore pillars:\n• Extreme isometric holds (30-90 sec) to override Golgi tendon inhibition\n• Overspeed eccentrics (band jumps) to train above normal movement speeds\n• Reflexive strength — force production without conscious thought\n• Full body tension — total stiffness under dynamic load\n\nArchuleta went from undrafted prospect to physically dominant NFL safety entirely through this system.\n\nThe session sequence: Neural Recruitment → SSC Expression → Power. Always in that order.</div></div>`;
+}
+
+// ── BUILD PLAN ────────────────────────────────────────────────────────────
+let planPhotoSlots=[]; // [{label,instruction}] set by AI
+// planPhotos array is declared at top of file
+
+function planGoTo(step){
+  ['1','2','2b','3','4'].forEach(n=>{ const el=document.getElementById('plan-step-'+n); if(el) el.style.display='none'; });
+  const target=document.getElementById('plan-step-'+step);
+  if(target) target.style.display='block';
+}
+
+function setPlanMember(name,emoji,bg,el){
+  planMember={name,emoji,bg};
+  document.querySelectorAll('#plan-step-1 .member-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  setTimeout(()=>planGoTo(2),200);
+}
+
+function addPlanMember(){
+  const n=prompt('Enter name:');
+  if(!n||!n.trim()) return;
+  planMember={name:n.trim(),emoji:'👤',bg:'rgba(255,107,43,.15)'};
+  planGoTo(2);
+}
+
+async function getPhotoGuide(btn){
+  const goal=document.getElementById('plan-goal-input').value.trim();
+  if(!goal){alert('Tell us what you want to achieve first.');return;}
+  if(!planMember){alert('Select a member first.');planGoTo(1);return;}
+
+  const orig=btn.textContent;
+  btn.textContent='⏳ Getting your photo guide...';
+  btn.disabled=true;
+
+  try{
+    const res=await fetch('/api/plan/photo-guide',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({member_name:planMember.name,goal})
+    });
+    const guide=await res.json();
+    if(guide.error) throw new Error(guide.error);
+
+    planPhotoSlots=guide.shots||[];
+    // Always ensure at least 4 slots
+    const defaults=[
+      {label:'Front View',instruction:'Stand facing camera, feet shoulder-width, arms at sides. Full body.'},
+      {label:'Back View',instruction:'Turn completely away from camera, same relaxed stance.'},
+      {label:'Side View',instruction:'Turn 90° to camera, arms at sides. Shows posture and belly.'},
+      {label:'Close-Up / Focus',instruction:'Close-up of the area you most want to change.'},
+    ];
+    while(planPhotoSlots.length<4) planPhotoSlots.push(defaults[planPhotoSlots.length]);
+
+    // Reset photo data to match slot count
+    planPhotos.length=0;
+    planPhotoSlots.forEach(()=>planPhotos.push(null));
+
+    // Build guide intro
+    document.getElementById('photo-guide-intro').textContent=guide.intro||'Take the photos below to help the AI understand your starting point.';
+
+    // Build photo slots
+    buildPhotoSlots();
+    planGoTo('2b');
+  } catch(e){
+    btn.textContent=orig; btn.disabled=false;
+    alert('Could not get photo guide: '+e.message);
+  }
+}
+
+function buildPhotoSlots(){
+  const container=document.getElementById('photo-slots-container');
+  container.innerHTML='';
+  planPhotoSlots.forEach((slot,i)=>{
+    const div=document.createElement('div');
+    div.className='plan-photo-slot'; div.id='pslot-dyn-'+i;
+    div.onclick=()=>document.getElementById('pfile-dyn-'+i).click();
+    div.innerHTML=`<div class="plan-slot-empty" id="pslot-empty-${i}"><span style="font-size:22px">📸</span><span style="font-size:.6rem;color:var(--muted);margin-top:2px">Tap</span></div><img class="plan-slot-thumb" id="pphoto-dyn-${i}" style="display:none"><div class="plan-slot-info"><div class="plan-slot-label">${i+1}. ${slot.label}</div><div class="plan-slot-instruction">${slot.instruction}</div><div class="plan-slot-status" id="pstatus-${i}" style="display:none">✅ Photo ready</div></div><input type="file" id="pfile-dyn-${i}" accept="image/*" style="display:none" onchange="setPlanPhoto(${i},event)">`;
+    container.appendChild(div);
+  });
+}
+
+function setPlanPhoto(idx,e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const b64=ev.target.result.split(',')[1];
+    planPhotos[idx]={b64,mime:file.type};
+    const slot=document.getElementById('pslot-dyn-'+idx);
+    const img=document.getElementById('pphoto-dyn-'+idx);
+    const empty=document.getElementById('pslot-empty-'+idx);
+    const status=document.getElementById('pstatus-'+idx);
+    img.src=ev.target.result; img.style.display='block';
+    empty.style.display='none';
+    status.style.display='block';
+    slot.classList.add('has-photo');
+  };
+  reader.readAsDataURL(file);
+}
+
+const PLAN_MSGS=[
+  'Analyzing your goals...','Studying your photos...','Designing your workouts...',
+  'Building your meal plan...','Calculating your macros...','Writing your day-by-day schedule...',
+  'Adding coaching cues...','Reviewing the full program...','Almost ready...'
+];
+
+async function generatePlan(){
+  if(!planMember){alert('Select a member first.');planGoTo(1);return;}
+  const goal=document.getElementById('plan-goal-input').value.trim();
+  const weeks=document.getElementById('plan-weeks-input').value;
+  const target=document.getElementById('plan-results-input').value.trim();
+  if(!goal){alert('Tell us what you want to achieve.');return;}
+
+  planGoTo(3);
+  let mi=0;
+  const mel=document.getElementById('plan-load-msg');
+  const iv=setInterval(()=>{mi=(mi+1)%PLAN_MSGS.length;mel.textContent=PLAN_MSGS[mi];},3500);
+
+  try{
+    const photos=planPhotos.filter(Boolean);
+    const res=await fetch('/api/plan/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({member_name:planMember.name,goal,timeframe_weeks:parseInt(weeks),target_results:target,photos})
+    });
+    clearInterval(iv);
+    if(!res.ok){const e=await res.json();throw new Error(e.error||'Server error');}
+    const plan=await res.json();
+    renderPlanResults(plan,weeks,goal);
+    planGoTo(4);
+  } catch(err){
+    clearInterval(iv);
+    alert('Plan generation failed: '+err.message);
+    planGoTo('2b');
+  }
+}
+
+function renderPlanResults(plan,weeks,goal){
+  document.getElementById('plan-res-av').textContent=planMember.emoji;
+  document.getElementById('plan-res-av').style.background=planMember.bg;
+  document.getElementById('plan-res-name').textContent=planMember.name+"'s "+weeks+"-Week Plan";
+  document.getElementById('plan-res-tag').textContent=goal.slice(0,50)+(goal.length>50?'…':'');
+
+  document.getElementById('plan-overview-card').innerHTML=`<div class="plan-week-hdr" style="margin-bottom:10px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;color:var(--green);margin-bottom:4px">Your Plan Overview</div><div class="plan-overview">${plan.overview||''}</div>${plan.daily_calories?`<div style="display:flex;gap:10px;margin-top:8px"><span class="htag htag-g">${plan.daily_calories} cal/day</span><span class="htag htag-b">${plan.daily_protein_g||'—'}g protein</span></div>`:''}${plan.weekly_structure?`<div style="font-size:.74rem;color:var(--muted);margin-top:7px;line-height:1.5">${plan.weekly_structure}</div>`:''}</div>`;
+
+  const tabsEl=document.getElementById('plan-week-tabs');
+  const contentEl=document.getElementById('plan-week-content');
+  tabsEl.innerHTML=''; contentEl.innerHTML='';
+
+  const weekList=plan.weeks||[];
+  weekList.forEach((wk,wi)=>{
+    const btn=document.createElement('button');
+    btn.className='wtab'+(wi===0?' active':'');
+    btn.textContent='Wk '+(wk.num||wi+1);
+    btn.onclick=()=>{
+      document.querySelectorAll('#plan-week-tabs .wtab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlanWeek(wk);
+    };
+    tabsEl.appendChild(btn);
+  });
+  if(weekList.length) renderPlanWeek(weekList[0]);
+}
+
+function renderPlanWeek(wk){
+  const el=document.getElementById('plan-week-content');
+  let html=`<div class="plan-week-hdr" style="margin-bottom:10px"><div style="font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green)">Week ${wk.num}</div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.1rem;color:#fff">${wk.theme||''}</div>${wk.adjustment?`<div style="font-size:.75rem;color:var(--orange2);margin-top:4px">${wk.adjustment}</div>`:''}</div>`;
+
+  (wk.days||[]).forEach((day,di)=>{
+    const id='pday-'+di;
+    const isRest=(day.type==='rest'||day.type==='active-recovery'||(day.exercises||[]).length===0);
+    const dotColor=isRest?'var(--yellow)':'var(--orange)';
+    const tagBg=isRest?'rgba(255,209,102,.15)':'rgba(255,107,43,.15)';
+    const tagColor=isRest?'var(--yellow)':'var(--orange)';
+    const tagTxt=isRest?'Rest':'Workout';
+
+    html+=`<div class="pday-card" id="${id}"><div class="pday-hdr" onclick="togglePDay('${id}')"><div class="pday-type-dot" style="background:${dotColor}"></div><div class="pday-name">${day.day}</div><div class="pday-tag" style="background:${tagBg};color:${tagColor}">${day.workout_name||tagTxt}</div><div class="pday-chev">›</div></div><div class="pday-body">`;
+
+    if(isRest){
+      html+=`<div class="plan-rest-card"><div class="plan-rest-icon">😴</div><div class="plan-rest-txt">Rest & Recovery — your muscles grow while you rest.<br>Light walk, stretching, or full rest.</div></div>`;
+    } else {
+      const exs=day.exercises||[];
+      if(exs.length){
+        html+=`<div class="pday-section-hdr">🏋️ Workout${day.duration_min?' — '+day.duration_min+' min':''}</div>`;
+        exs.forEach((ex,ei)=>{
+          html+=`<div class="pex-row"><div class="pex-num">${ei+1}</div><div class="pex-info"><div class="pex-name">${ex.name}</div><div class="pex-detail">${ex.sets} sets × ${ex.reps}${ex.rest?' · Rest: '+ex.rest:''}</div>${ex.how?`<div class="pex-how">${ex.how}</div>`:''}</div></div>`;
+        });
+      }
+    }
+
+    const meals=day.meals||[];
+    if(meals.length){
+      html+=`<div class="pday-section-hdr" style="border-top:1px solid var(--border);margin-top:0">🥗 Nutrition</div>`;
+      meals.forEach(m=>{
+        const foods=Array.isArray(m.foods)?m.foods.join(' · '):m.foods||'';
+        html+=`<div class="pmeal-row"><div class="pmeal-hdr"><span class="pmeal-name">${m.name}</span><span class="pmeal-time">${m.time||''}</span><span class="pmeal-macros">${m.calories?m.calories+' cal':''}${m.protein_g?' · '+m.protein_g+'g protein':''}</span></div><div class="pmeal-foods">${foods}</div></div>`;
+      });
+    }
+
+    html+=`</div></div>`;
+  });
+
+  el.innerHTML=html;
+}
+
+function togglePDay(id){document.getElementById(id).classList.toggle('open');}
+
+function resetPlan(){
+  planMember=null;
+  planPhotos.length=0;
+  planPhotoSlots=[];
+  document.getElementById('photo-slots-container').innerHTML='';
+  document.getElementById('plan-goal-input').value='';
+  document.getElementById('plan-results-input').value='';
+  const btn=document.getElementById('photo-guide-btn');
+  if(btn){btn.textContent='📸 Next — Get Your Photo Guide';btn.disabled=false;}
+  document.querySelectorAll('#plan-step-1 .member-card').forEach(c=>c.classList.remove('active'));
+  planGoTo(1);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────

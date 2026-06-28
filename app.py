@@ -192,6 +192,140 @@ def create_app():
         photos = {r.member_name: f'/static/uploads/{r.photo_filename}' for r in rows}
         return jsonify({'photos': photos})
 
+    # ── PLAN BUILDER ───────────────────────────────────────────────────────
+
+    @app.route('/api/plan/photo-guide', methods=['POST'])
+    def plan_photo_guide():
+        data = request.get_json()
+        member_name = data.get('member_name', 'Member')
+        goal = data.get('goal', '')
+        is_youth = member_name in ('Lily', 'Mason')
+
+        api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        if not api_key:
+            return jsonify({'error': 'AI coach not configured'}), 503
+
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+
+            prompt = f"""You are a personal trainer. {member_name}'s goal: {goal}.
+{"Age note: youth athlete — keep photo requests age-appropriate, sportswear only." if is_youth else ""}
+
+What specific photos should {member_name} take so you can assess their starting point and build the most accurate plan? Give at least 4 shots, up to 6 if the goal warrants it. Be exact — angle, clothing, what to flex or not flex, lighting.
+
+Return ONLY valid JSON:
+{{"intro":"1-2 sentence explanation of why these photos matter for their specific goal","shots":[{{"label":"Short name (2-4 words)","instruction":"Exact instruction — be specific and simple"}}]}}
+
+Minimum 4 shots. Add extra shots only if genuinely useful for this specific goal."""
+
+            response = client.messages.create(
+                model='claude-sonnet-4-6',
+                max_tokens=800,
+                messages=[{'role': 'user', 'content': prompt}],
+            )
+            raw = ''.join(block.text for block in response.content if hasattr(block, 'text'))
+            raw = raw.replace('```json', '').replace('```', '').strip()
+            guide = json.loads(raw)
+            return jsonify(guide)
+
+        except Exception as e:
+            # Fallback to generic shots if AI fails
+            return jsonify({
+                'intro': 'These photos give the AI everything it needs to assess your starting point and build a plan specific to your body.',
+                'shots': [
+                    {'label': 'Front Relaxed', 'instruction': 'Stand facing camera, feet shoulder-width, arms at sides. Full body, natural posture.'},
+                    {'label': 'Front Flexed', 'instruction': 'Same position — flex abs, arms slightly out. Shows current muscle definition.'},
+                    {'label': 'Back View', 'instruction': 'Turn completely away, same relaxed stance. Shows back, glutes, and leg development.'},
+                    {'label': 'Side View', 'instruction': 'Turn 90° to camera, arms at sides. Shows posture, belly profile, and spine alignment.'},
+                ]
+            })
+
+    @app.route('/api/plan/generate', methods=['POST'])
+    def generate_plan():
+        data = request.get_json()
+        member_name = data.get('member_name', 'Member')
+        goal = data.get('goal', '')
+        timeframe_weeks = int(data.get('timeframe_weeks', 8))
+        target_results = data.get('target_results', '')
+        photos = data.get('photos', [])
+        is_youth = member_name in ('Lily', 'Mason')
+
+        api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        if not api_key:
+            return jsonify({'error': 'AI coach not configured'}), 503
+
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+
+            prompt = f"""You are an elite personal trainer and nutritionist. Create a COMPLETE {timeframe_weeks}-week program for {member_name}.
+
+Goal: {goal}
+Target: {target_results}
+{"IMPORTANT: Youth athlete — age-appropriate exercises only, no adult content, focus on athletic development and fun." if is_youth else ""}
+{"Body photos provided — use them to assess starting point and tailor every detail." if photos else "No photos — build entirely from the goal description."}
+
+This plan must be so clear and specific that anyone could follow it without asking a single question. Every exercise has a set/rep count and a simple coaching cue. Every meal has exact foods and portions.
+
+Return ONLY valid JSON, no markdown fences:
+{{"overview":"2-3 sentences — what this plan will do for {member_name} and why it works","weekly_structure":"1 sentence describing the weekly pattern","daily_calories":{{"number":2000}},"daily_protein_g":{{"number":150}},"weeks":[{{"num":1,"theme":"Week theme","adjustment":"What changes or focus for this week","days":[{{"day":"Monday","type":"workout","workout_name":"Upper Body Push","duration_min":45,"exercises":[{{"name":"Push-Up","sets":"3","reps":"10-12","rest":"60s","how":"chest touches floor, full lockout at top"}}],"meals":[{{"name":"Breakfast","time":"7:00am","foods":["2 scrambled eggs","1 slice whole wheat toast","1 banana","black coffee or water"],"calories":450,"protein_g":28}},{{"name":"Lunch","time":"12:00pm","foods":["5oz grilled chicken breast","1 cup brown rice","1 cup broccoli with olive oil"],"calories":580,"protein_g":45}},{{"name":"Dinner","time":"6:30pm","foods":["6oz salmon fillet","1 medium sweet potato","side salad with olive oil"],"calories":620,"protein_g":42}},{{"name":"Snack","time":"3:00pm","foods":["1 cup Greek yogurt","1 handful mixed nuts"],"calories":280,"protein_g":18}}]}},{{"day":"Tuesday","type":"rest","workout_name":"Rest & Recovery","exercises":[],"meals":[same 4 meals with same structure]}}]}}]}}
+
+Rules:
+- Include ALL {timeframe_weeks} weeks, every day of the week (Mon-Sun)
+- For rest days: type="rest", empty exercises array, still include 4 meals
+- For workout days: 4-8 exercises with exact sets/reps/rest/cue
+- All meals: exact portions in plain English, never vague ("chicken" → "5oz grilled chicken breast")
+- Calories and protein must add up to the daily total
+- Progressive overload: each week gets harder (more reps, weight, or shorter rest)
+- daily_calories and daily_protein_g: return as plain numbers, not objects"""
+
+            content_blocks = []
+            for photo in photos[:8]:
+                if photo.get('b64'):
+                    content_blocks.append({
+                        'type': 'image',
+                        'source': {'type': 'base64', 'media_type': photo.get('mime', 'image/jpeg'), 'data': photo['b64']}
+                    })
+            content_blocks.append({'type': 'text', 'text': prompt})
+
+            response = client.messages.create(
+                model='claude-sonnet-4-6',
+                max_tokens=16000,
+                messages=[{'role': 'user', 'content': content_blocks}],
+            )
+
+            raw = ''.join(block.text for block in response.content if hasattr(block, 'text'))
+            raw = raw.replace('```json', '').replace('```', '').strip()
+
+            try:
+                plan = json.loads(raw)
+            except json.JSONDecodeError:
+                import re
+                m = re.search(r'\{.*\}', raw, re.DOTALL)
+                if m:
+                    plan = json.loads(m.group())
+                else:
+                    return jsonify({'error': 'Could not parse plan — try again.'}), 500
+
+            # Normalize calorie/protein fields
+            for field in ('daily_calories', 'daily_protein_g'):
+                v = plan.get(field)
+                if isinstance(v, dict):
+                    plan[field] = v.get('number') or next(iter(v.values()), None)
+
+            db.session.add(CoachPlan(
+                member_name=member_name,
+                goal=f"Full {timeframe_weeks}wk Plan: {goal[:80]}",
+                plan_json=json.dumps(plan),
+            ))
+            db.session.commit()
+
+            return jsonify(plan)
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
     # ── AI COACH ───────────────────────────────────────────────────────────
 
     @app.route('/api/coach', methods=['POST'])
